@@ -38,7 +38,7 @@ val testData = subreddit {
             if (sequenceIndex > sequence.lastIndex) { return }
 
             for(i in 1..sequence[sequenceIndex]) {
-                val newComment = Comment()
+                val newComment = Comment(item.depth + 1)
                 newComment.text = parentText + i
                 item.children.add(newComment)
                 addTo(item = newComment, parentText = newComment.text + ".", sequenceIndex = sequenceIndex + 1)
@@ -57,7 +57,7 @@ val testData = subreddit {
         title = "Post D"
         var item: Entry = this
         for (i in 1..10) {
-            val newComment = Comment()
+            val newComment = Comment(item.depth + 1)
             newComment.text = "D" + "1.".repeat(i-1) + "1"
             item.children.add(newComment)
             item = newComment

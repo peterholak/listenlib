@@ -2,13 +2,6 @@
 
 package net.holak.listen.rsplayground
 
-enum class NavigationEarcon {
-    LiftUp,
-    DiveDown
-}
-
-class EntryDepth(val entry: Entry, val depth: Int)
-
 // Idea: maybe have a way to use nested scripts, so that it is easier to just read a specific thread,
 // or saved threads etc.
 //
@@ -17,7 +10,7 @@ class EntryDepth(val entry: Entry, val depth: Int)
 
 abstract class StackBasedScript(topEntry: Entry) : Iterator<String> {
 
-    val stack = mutableListOf(EntryDepth(entry = topEntry, depth = 0))
+    val stack = mutableListOf(topEntry)
 
     override fun hasNext() = stack.isNotEmpty()
 
@@ -27,51 +20,49 @@ abstract class StackBasedScript(topEntry: Entry) : Iterator<String> {
 
         fillStack(item)
 
-        return item.entry.summary()
+        return "${item.summary()} (${item.depth})"
     }
 
-    abstract fun fillStack(item: EntryDepth)
+    abstract fun fillStack(item: Entry)
 }
 
 class BasicDepthFirstScript(topEntry: Entry) : StackBasedScript(topEntry) {
-    override fun fillStack(item: EntryDepth) {
-        stack.addAll(item.entry.children.reversed().map { EntryDepth(it, item.depth + 1) })
+    override fun fillStack(item: Entry) {
+        stack.addAll(item.children.reversed())
     }
 }
 
 class ScriptWithBreadthLimit(topEntry: Entry, val breadthLimit: Int) : StackBasedScript(topEntry) {
 
-    override fun fillStack(item: EntryDepth) {
-        val children = item.entry.children
+    override fun fillStack(item: Entry) {
+        val children = item.children
         stack.addAll(
                 children
                         .slice(0..Math.min(breadthLimit, children.size) - 1)
                         .reversed()
-                        .map { EntryDepth(it, item.depth + 1) }
         )
     }
 }
 
 class ScriptWithDepthLimit(topEntry: Entry, val depthLimit: Int) : StackBasedScript(topEntry) {
 
-    override fun fillStack(item: EntryDepth) {
+    override fun fillStack(item: Entry) {
         if (item.depth < depthLimit) {
-            stack.addAll(item.entry.children.reversed().map { EntryDepth(it, item.depth + 1) })
+            stack.addAll(item.children.reversed())
         }
     }
 }
 
 class ScriptWithBothLimits(topEntry: Entry, val depthLimit: Int, val breadthLimit: Int) : StackBasedScript(topEntry) {
 
-    override fun fillStack(item: EntryDepth) {
+    override fun fillStack(item: Entry) {
         if (item.depth >= depthLimit) { return }
 
-        val children = item.entry.children
+        val children = item.children
         stack.addAll(
                 children
                         .slice(0..Math.min(breadthLimit, children.size) - 1)
                         .reversed()
-                        .map { EntryDepth(it, item.depth + 1) }
         )
     }
 
@@ -81,15 +72,14 @@ class ScriptWithMapLimits(topEntry: Entry, val breadthLimitForDepth: Map<Int, In
 
     val depthLimit = breadthLimitForDepth.keys.max() ?: 0
 
-    override fun fillStack(item: EntryDepth) {
+    override fun fillStack(item: Entry) {
         if (item.depth > depthLimit) { return }
 
-        val children = item.entry.children
+        val children = item.children
         stack.addAll(
                 children
                         .slice(0..Math.min(breadthLimitForDepth[item.depth] ?: 0, children.size) - 1)
                         .reversed()
-                        .map { EntryDepth(it, item.depth + 1) }
         )
     }
 }

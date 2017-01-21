@@ -1,6 +1,8 @@
+@file:Suppress("unused")
+
 package net.holak.listen.rsplayground
 
-abstract class Entry {
+abstract class Entry(val depth: Int) {
     val children = mutableListOf<Entry>()
     abstract fun summary(): String
 
@@ -12,12 +14,12 @@ abstract class Entry {
     }
 }
 
-class Subreddit : Entry() {
+class Subreddit(depth: Int) : Entry(depth) {
 
     var title = "<empty>"
     override fun summary() = "Subreddit " + title
     fun post(init: Post.() -> Unit): Post {
-        val p = Post()
+        val p = Post(depth + 1)
         p.init()
         children.add(p)
         return p
@@ -25,7 +27,7 @@ class Subreddit : Entry() {
 
 }
 
-class Post : Entry() {
+class Post(depth: Int) : Entry(depth) {
 
     var title = "<empty>"
     var selfPostText = ""
@@ -33,7 +35,7 @@ class Post : Entry() {
     fun isLink() = selfPostText.isEmpty()
 
     fun comment(init: Comment.() -> Unit): Comment {
-        val c = Comment()
+        val c = Comment(depth + 1)
         c.init()
         children.add(c)
         return c
@@ -41,13 +43,13 @@ class Post : Entry() {
 
 }
 
-class Comment : Entry() {
+class Comment(depth: Int) : Entry(depth) {
 
     var text = "<empty>"
     override fun summary() = text
 
     fun comment(init: Comment.() -> Unit): Comment {
-        val c = Comment()
+        val c = Comment(depth + 1)
         c.init()
         children.add(c)
         return c
@@ -56,5 +58,5 @@ class Comment : Entry() {
 }
 
 fun subreddit(init: Subreddit.() -> Unit): Subreddit {
-    return Subreddit().apply { init() }
+    return Subreddit(0).apply { init() }
 }
