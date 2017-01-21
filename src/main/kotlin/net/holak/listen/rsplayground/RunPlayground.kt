@@ -73,12 +73,12 @@ class ScriptWithMapLimits(topEntry: Entry, val breadthLimitForDepth: Map<Int, In
     val depthLimit = breadthLimitForDepth.keys.max() ?: 0
 
     override fun fillStack(item: Entry) {
-        if (item.depth > depthLimit) { return }
+        if (item.depth >= depthLimit) { return }
 
         val children = item.children
         stack.addAll(
                 children
-                        .slice(0..Math.min(breadthLimitForDepth[item.depth] ?: 0, children.size) - 1)
+                        .slice(0..Math.min(breadthLimitForDepth[item.depth + 1] ?: 0, children.size) - 1)
                         .reversed()
         )
     }
@@ -89,8 +89,16 @@ fun main(args: Array<String>) {
 //    ScriptWithDepthLimit(testData, 4).forEach { println(">" + it) }
 //    ScriptWithBothLimits(testData, 4, 2).forEach { println("> $it") }
     ScriptWithMapLimits(testData, mapOf(
-            0 to 2,
-            1 to 5,
-            2 to 5
+            0 to 1,
+            1 to 3,
+            2 to 2
     )).forEach { println("> $it") }
+//    convertRealRedditPost()
 }
+//
+//fun convertRealRedditPost() {
+//    val reddit = Reddit()
+//    val ask = SubredditPaginator(reddit.reddit, "AskReddit")
+//    val post = ask.next().get(0).selftext
+//    print(post)
+//}
